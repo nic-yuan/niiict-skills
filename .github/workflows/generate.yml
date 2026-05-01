@@ -1,0 +1,39 @@
+name: Regenerate Skills Index
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'brands/**'
+      - 'scripts/**'
+      - 'templates/**'
+      - 'generate-index.py'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Generate index.html
+        run: python3 scripts/generate-index.py
+
+      - name: Commit and push updated index
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions"
+          git add index.html
+          git diff --cached --exit-code && echo "No changes to commit" || {
+            git commit -m "Auto: regenerate skills index $(date '+%Y-%m-%d %H:%M')"
+            git push
+          }
